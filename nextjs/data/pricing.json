@@ -1,0 +1,85 @@
+{
+  "plans": [
+    {
+      "id": "starter",
+      "name": "Starter",
+      "price": "Miễn phí",
+      "priceValue": 0,
+      "period": "vĩnh viễn",
+      "description": "Dành cho cá nhân và team nhỏ",
+      "features": [
+        "Tối đa 5 người dùng",
+        "10GB lưu trữ",
+        "Hỗ trợ email",
+        "Tích hợp cơ bản",
+        "Báo cáo cơ bản"
+      ],
+      "cta": "Bắt đầu miễn phí",
+      "popular": false
+    },
+    {
+      "id": "standard",
+      "name": "Standard",
+      "price": "2.990.000",
+      "priceValue": 2990000,
+      "period": "tháng",
+      "description": "Phù hợp cho doanh nghiệp vừa và nhỏ",
+      "features": [
+        "Tối đa 25 người dùng",
+        "100GB lưu trữ",
+        "Hỗ trợ ưu tiên",
+        "Tích hợp nâng cao",
+        "Báo cáo chi tiết",
+        "Backup tự động",
+        "API access"
+      ],
+      "cta": "Đăng ký ngay",
+      "popular": true
+    },
+    {
+      "id": "advanced",
+      "name": "Advanced",
+      "price": "5.990.000",
+      "priceValue": 5990000,
+      "period": "tháng",
+      "description": "Cho doanh nghiệp lớn cần tính năng mạnh mẽ",
+      "features": [
+        "Tối đa 100 người dùng",
+        "500GB lưu trữ",
+        "Hỗ trợ 24/7",
+        "Tích hợp không giới hạn",
+        "Báo cáo nâng cao",
+        "Backup tự động",
+        "API access",
+        "White-label",
+        "Quản lý quyền nâng cao"
+      ],
+      "cta": "Liên hệ tư vấn",
+      "popular": false
+    },
+    {
+      "id": "enterprise",
+      "name": "Enterprise",
+      "price": "Tùy chỉnh",
+      "priceValue": null,
+      "period": "",
+      "description": "Giải pháp tùy chỉnh cho doanh nghiệp lớn",
+      "features": [
+        "Người dùng không giới hạn",
+        "Lưu trữ không giới hạn",
+        "Hỗ trợ chuyên dụng",
+        "Tích hợp tùy chỉnh",
+        "Báo cáo tùy chỉnh",
+        "Backup nâng cao",
+        "API không giới hạn",
+        "White-label đầy đủ",
+        "SLA đảm bảo",
+        "On-premise option",
+        "Training & onboarding"
+      ],
+      "cta": "Liên hệ bán hàng",
+      "popular": false
+    }
+  ]
+}
+

@@ -1,0 +1,33 @@
+{
+  "testimonials": [
+    {
+      "id": 1,
+      "name": "Nguyễn Văn A",
+      "role": "CEO, Công ty ABC",
+      "content": "BizGenie đã giúp chúng tôi tối ưu hóa quy trình làm việc và tiết kiệm 40% thời gian xử lý.",
+      "avatar": "👤"
+    },
+    {
+      "id": 2,
+      "name": "Trần Thị B",
+      "role": "CTO, Công ty XYZ",
+      "content": "Hệ thống bảo mật và hiệu suất của BizGenie vượt quá mong đợi của chúng tôi.",
+      "avatar": "👤"
+    },
+    {
+      "id": 3,
+      "name": "Lê Văn C",
+      "role": "Giám đốc IT, Công ty DEF",
+      "content": "Tích hợp dễ dàng và hỗ trợ khách hàng tuyệt vời. Rất hài lòng với dịch vụ.",
+      "avatar": "👤"
+    }
+  ],
+  "trustedLogos": [
+    { "id": 1, "name": "Company A", "logo": "🏢" },
+    { "id": 2, "name": "Company B", "logo": "🏢" },
+    { "id": 3, "name": "Company C", "logo": "🏢" },
+    { "id": 4, "name": "Company D", "logo": "🏢" },
+    { "id": 5, "name": "Company E", "logo": "🏢" }
+  ]
+}
+

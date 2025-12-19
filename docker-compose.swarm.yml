@@ -1,0 +1,190 @@
+# Docker Compose file tối ưu cho Docker Swarm mode
+# Sử dụng: docker stack deploy -c docker-compose.swarm.yml bizgenie
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    # container_name không được hỗ trợ trong Swarm mode
+    environment:
+      POSTGRES_DB: bizgenie_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Lưu ý: Local paths cần được mount trên tất cả nodes
+      # Hoặc sử dụng NFS/shared storage
+      - ./database/migrations:/docker-entrypoint-initdb.d
+      - ./database/seed.sql:/seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager  # Chỉ chạy trên manager node
+      resources:
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+        limits:
+          cpus: '1.0'
+          memory: 1G
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    networks:
+      - bizgenie-network
+
+  main-api:
+    # Nên sử dụng image từ registry thay vì build
+    # image: your-registry/bizgenie-main-api:latest
+    build:
+      context: ./main-api
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/bizgenie_db?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      PORT: 8080
+      MIGRATION_DIR: /migrations
+      FORCE_UPDATE_ADMIN: ${FORCE_UPDATE_ADMIN:-false}
+      SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL:-}
+    volumes:
+      - ./database/migrations:/migrations
+    deploy:
+      replicas: 2  # Scale để high availability
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        monitor: 30s
+      rollback_config:
+        parallelism: 1
+        delay: 5s
+      resources:
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+        limits:
+          cpus: '1.0'
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      # Health check được định nghĩa ở đây thay vì depends_on
+      # Swarm sẽ tự động restart nếu health check fail
+    networks:
+      - bizgenie-network
+
+  nextjs:
+    # image: your-registry/bizgenie-nextjs:latest
+    build:
+      context: ./nextjs
+      dockerfile: Dockerfile
+    environment:
+      API_BASE_URL: http://main-api:8080
+      NODE_ENV: production
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        monitor: 30s
+      rollback_config:
+        parallelism: 1
+        delay: 5s
+      resources:
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+        limits:
+          cpus: '1.0'
+          memory: 1G
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    networks:
+      - bizgenie-network
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager  # Nginx nên chạy trên manager
+      update_config:
+        parallelism: 1
+        delay: 10s
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+        limits:
+          cpus: '0.5'
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep nginx || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - bizgenie-network
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+        limits:
+          cpus: '0.5'
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    networks:
+      - bizgenie-network
+
+volumes:
+  postgres_data:
+    driver: local
+    # Có thể sử dụng driver khác như NFS cho multi-host
+    # driver_opts:
+    #   type: nfs
+    #   o: addr=nfs-server.example.com,nolock,soft,rw
+    #   device: ":/path/to/nfs/share"
+
+networks:
+  bizgenie-network:
+    driver: overlay
+    # Overlay network cho phép communication giữa các nodes
+    attachable: true

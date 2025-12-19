@@ -1,0 +1,28 @@
+---
+alwaysApply: true
+---
+1. Luôn tạo tài liệu *.md với các tính năng, chức năng, module mới... sau đó đưa vào docs/. Kiểm tra tại liệu *.md trước khi tạo, nếu đã có thì update
+2. Đọc lại BA mỗi khi cần tham khảo để ra quyết định.
+3. Các file *.sql migration đưa vào database/migrations
+4. Nếu mount các volumn trong docker-compose.yml thì đưa vào database/mounts. Luôn nhớ bỏ đi "version: '3.8'" đầu file docker-compose.yml. Chỉ expose port trong nginx service, không expose port các service khác.
+5. các request đảm bảo tuân theo nguyên tắc: Cloudflare -> nginx -> NextJS Frontend -> NextJS API Route -> main-api. NextJS API route request trực tiếp tới main-api, không qua nginx. 
+6. Luôn copy hết mã nguồn vào Docker để build, luôn tạo .dockerignore để tránh xung đột với PC dev là windows hoặc Mac OS, môi trường production là linux
+7. Hãy tạo route trên main-api tạo presigned url minio sau đó proxy qua nginx các route này để hiển thị file, ảnh trong minio
+8. Khi tạo tính năng mới hoặc sửa đổi tính năng, luôn cập nhật ERD.json và cập nhật các tài liệu liên quan trong docs/
+9. Auth bằng JWT trong main-api.
+10. nginx reverse toàn bộ các request tới NextJs. Nextjs chỉ đóng vai trò như frontend
+Browser (Frontend)
+  ↓
+nginx (reverse proxy)
+  ↓
+NextJS Frontend (client-side)
+  ↓ gọi /api/....
+NextJS API Route (server-side)
+  ↓ gọi trực tiếp http://main-api:8080 (không qua nginx)
+main-api
+  ↓
+- ....
+- Lưu vào database
+- ....
+  ↓
+Trả về response

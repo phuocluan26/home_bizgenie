@@ -1,0 +1,45 @@
+{
+  "features": [
+    {
+      "id": 1,
+      "title": "Tùy biến dễ dàng",
+      "description": "Tùy biến dễ dàng theo nhu cầu của doanh nghiệp từ on-cloud hoặc on-premise",
+      "icon": "shield",
+      "position": { "angle": 0, "radius": 220 }
+    },
+    {
+      "id": 2,
+      "title": "Tự động hóa thông minh",
+      "description": "AI tự động hóa quy trình làm việc, tiết kiệm thời gian",
+      "icon": "zap",
+      "position": { "angle": 72, "radius": 220 }
+    },
+    {
+      "id": 3,
+      "title": "Phân tích dữ liệu",
+      "description": "Dashboard phân tích real-time với insights chi tiết",
+      "icon": "bar-chart",
+      "position": { "angle": 144, "radius": 220 }
+    },
+    {
+      "id": 4,
+      "title": "Tích hợp dễ dàng",
+      "description": "API mạnh mẽ, tích hợp với các hệ thống hiện có",
+      "icon": "plug",
+      "position": { "angle": 216, "radius": 220 }
+    },
+    {
+      "id": 5,
+      "title": "Hỗ trợ 24/7",
+      "description": "Đội ngũ hỗ trợ chuyên nghiệp, sẵn sàng 24/7",
+      "icon": "headphones",
+      "position": { "angle": 288, "radius": 220 }
+    }
+  ],
+  "centerAgent": {
+    "name": "BizAgent",
+    "avatar": "🤖",
+    "description": "AI cho doanh nghiệp"
+  }
+}
+

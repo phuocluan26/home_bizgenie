@@ -1,0 +1,168 @@
+name: Deploy Production
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger khi có tag bắt đầu bằng v (ví dụ: v1.0.1, v.1.0.1)
+
+jobs:
+  deploy:
+    name: Deploy to Production Server
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for tags
+
+      - name: Get tag name
+        id: tag
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: Add server to known hosts
+        run: |
+          ssh-keyscan -H 103.195.240.89 >> ~/.ssh/known_hosts
+
+      - name: Create deployment directory
+        run: |
+          ssh root@103.195.240.89 "mkdir -p /root/home-bizgenie"
+
+      - name: Clone/Update repository on server
+        run: |
+          ssh root@103.195.240.89 << 'ENDSSH'
+            cd /root/home-bizgenie
+            
+            # Kiểm tra xem repository đã tồn tại chưa
+            if [ -d .git ]; then
+              echo "Repository đã tồn tại, đang fetch và checkout tag..."
+              git fetch --all --tags --prune
+              git checkout ${{ steps.tag.outputs.TAG_NAME }} || {
+                echo "Tag không tồn tại, đang fetch lại..."
+                git fetch --all --tags
+                git checkout ${{ steps.tag.outputs.TAG_NAME }}
+              }
+            else
+              echo "Repository chưa tồn tại, đang clone..."
+              # Clone repository (sử dụng HTTPS, có thể cần token cho private repo)
+              git clone https://github.com/${{ github.repository }}.git .
+              git checkout ${{ steps.tag.outputs.TAG_NAME }}
+            fi
+            
+            # Xác nhận tag hiện tại
+            echo "Tag hiện tại: $(git describe --tags --exact-match HEAD 2>/dev/null || echo 'Không xác định')"
+            echo "Commit: $(git rev-parse HEAD)"
+          ENDSSH
+
+      - name: Copy .env file if exists
+        run: |
+          ssh root@103.195.240.89 << 'ENDSSH'
+            cd /root/home-bizgenie
+            # Nếu file .env chưa tồn tại trên server, tạo từ env.example
+            if [ ! -f .env ]; then
+              if [ -f env.example ]; then
+                cp env.example .env
+                echo "Đã tạo file .env từ env.example. Vui lòng cập nhật các giá trị cần thiết."
+              fi
+            fi
+          ENDSSH
+
+      - name: Deploy with Docker Compose
+        timeout-minutes: 30
+        run: |
+          ssh root@103.195.240.89 << 'ENDSSH'
+            cd /root/home-bizgenie
+            
+            echo "=== Bắt đầu deployment tag: ${{ steps.tag.outputs.TAG_NAME }} ==="
+            
+            # Tạo thư mục backups nếu chưa có
+            mkdir -p backups
+            
+            # Backup database trước khi deploy (theo quy tắc gitflow)
+            echo "Đang backup database..."
+            if docker-compose ps postgres | grep -q "Up"; then
+              docker-compose exec -T postgres pg_dump -U postgres bizgenie_db > backups/db_backup_$(date +%Y%m%d_%H%M%S).sql
+              echo "✅ Database đã được backup"
+            else
+              echo "⚠️  Database service chưa chạy, bỏ qua backup"
+            fi
+            
+            # Pull images nếu cần (nếu sử dụng registry)
+            # docker-compose pull || true
+            
+            # Build và deploy
+            echo "Đang build và deploy services..."
+            docker-compose down || true
+            
+            # Clean up old images để tiết kiệm disk space
+            echo "Đang dọn dẹp images cũ..."
+            docker system prune -f || true
+            
+            echo "Đang build images..."
+            docker-compose build --no-cache || {
+              echo "❌ Build failed!"
+              exit 1
+            }
+            
+            echo "Đang khởi động services..."
+            docker-compose up -d || {
+              echo "❌ Deploy failed!"
+              exit 1
+            }
+            
+            # Chờ services khởi động
+            echo "Đang chờ services khởi động..."
+            sleep 15
+            
+            # Kiểm tra health của services
+            echo "Kiểm tra trạng thái services..."
+            docker-compose ps
+            
+            # Chạy migrations nếu có (đợi postgres sẵn sàng)
+            echo "Đang chờ PostgreSQL sẵn sàng..."
+            timeout 60 bash -c 'until docker-compose exec -T postgres pg_isready -U postgres; do sleep 2; done' || true
+            
+            echo "Đang chạy database migrations..."
+            docker-compose exec -T main-api /app/migrate up || echo "Migration không khả dụng hoặc đã chạy"
+            
+            echo "=== Deployment hoàn tất ==="
+          ENDSSH
+
+      - name: Verify deployment
+        run: |
+          ssh root@103.195.240.89 << 'ENDSSH'
+            cd /root/home-bizgenie
+            
+            echo "=== Kiểm tra deployment ==="
+            
+            # Kiểm tra containers đang chạy
+            echo "Containers đang chạy:"
+            docker-compose ps
+            
+            # Kiểm tra logs của các services chính
+            echo "Kiểm tra logs main-api (10 dòng cuối):"
+            docker-compose logs --tail=10 main-api || true
+            
+            echo "Kiểm tra logs nextjs (10 dòng cuối):"
+            docker-compose logs --tail=10 nextjs || true
+            
+            echo "Kiểm tra logs nginx (10 dòng cuối):"
+            docker-compose logs --tail=10 nginx || true
+            
+            # Kiểm tra health của nginx
+            echo "Kiểm tra health nginx:"
+            curl -f http://localhost/health || echo "Health check endpoint không khả dụng"
+          ENDSSH
+
+      - name: Deployment Summary
+        run: |
+          echo "✅ Deployment thành công!"
+          echo "Tag: ${{ steps.tag.outputs.TAG_NAME }}"
+          echo "Server: 103.195.240.89"
+          echo "Path: /root/home-bizgenie"
+          echo "Time: $(date)"

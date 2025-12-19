@@ -1,0 +1,111 @@
+---
+alwaysApply: true
+---
+---
+alwaysApply: true
+---
+# Quy tắc GitFlow
+
+## Cấu trúc nhánh chính
+
+### 1. Nhánh sản xuất
+- **main** → Mã đang chạy trên PRODUCTION
+- **develop** → Mã đang phát triển, môi trường DEV (auto deploy)
+
+### 2. Nhánh hỗ trợ
+- **feature/\*** → Nhánh tính năng mới, sống ngắn hạn
+- **release/x.y** → Chuẩn bị phát hành, QA/Staging bám theo nhánh này
+- **hotfix/x.y.z** → Sửa lỗi gấp từ main, sau đó merge ngược develop
+
+## Quy trình làm việc
+
+### Feature Development
+1. Tạo nhánh từ `develop`: `git checkout -b feature/tên-tính-năng`
+2. Phát triển tính năng
+3. Commit và push: `git push origin feature/tên-tính-năng`
+4. Tạo Pull Request merge vào `develop`
+5. Xóa nhánh feature sau khi merge
+
+### Release Preparation
+1. Tạo nhánh từ `develop`: `git checkout -b release/x.y`
+2. Chỉnh sửa version, fix bugs cuối cùng
+3. Merge vào `main` và `develop`
+4. Tag version trên `main`: `git tag -a vx.y.0 -m "Release x.y.0"`
+
+### Hotfix
+1. Tạo nhánh từ `main`: `git checkout -b hotfix/x.y.z`
+2. Sửa lỗi gấp
+3. Merge vào `main` và `develop`
+4. Tag version: `git tag -a vx.y.z -m "Hotfix x.y.z"`
+
+## Mapping triển khai tự động
+
+| Nhánh | Môi trường | Hành động |
+|-------|------------|-----------|
+| `develop` | DEV | Auto deploy |
+| `release/*` | STAGING | Auto deploy |
+| `main` (tag) | PRODUCTION | Auto deploy |
+
+## Quy tắc commit
+
+### Format commit message
+```
+type(scope): description
+
+- type: feat, fix, docs, style, refactor, test, chore
+- scope: tên module/component
+- description: mô tả ngắn gọn
+```
+
+### Ví dụ
+```
+feat(auth): thêm xác thực AWS Cognito
+fix(chat): sửa lỗi hiển thị tin nhắn
+docs(api): cập nhật tài liệu API
+```
+
+## Quy tắc bảo vệ nhánh
+
+### main
+- Chỉ merge từ `release/*` hoặc `hotfix/*`
+- Yêu cầu review code
+- Yêu cầu CI/CD pass
+
+### develop
+- Chỉ merge từ `feature/*` hoặc `release/*`
+- Yêu cầu review code
+- Yêu cầu CI/CD pass
+
+### feature/*
+- Không có quy tắc bảo vệ đặc biệt
+- Tự do push/force push
+
+## Lệnh Git hữu ích
+
+### Khởi tạo GitFlow
+```bash
+git flow init
+```
+
+### Tạo nhánh mới
+```bash
+git flow feature start tên-tính-năng
+git flow release start x.y
+git flow hotfix start x.y.z
+```
+
+### Hoàn thành nhánh
+```bash
+git flow feature finish tên-tính-năng
+git flow release finish x.y
+git flow hotfix finish x.y.z
+```
+
+## Lưu ý quan trọng
+
+1. **Không bao giờ commit trực tiếp vào `main`**
+2. **Luôn tạo Pull Request để merge code**
+3. **Xóa nhánh sau khi merge thành công**
+4. **Tag version rõ ràng cho mỗi release**
+5. **Test kỹ trước khi merge vào `develop`**
+6. **Backup database trước khi deploy production**

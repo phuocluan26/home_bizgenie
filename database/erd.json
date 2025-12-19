@@ -1,0 +1,557 @@
+{
+  "database": "bizgenie_db",
+  "version": "1.0.0",
+  "description": "ERD Schema cho Website giới thiệu sản phẩm BizGenie",
+  "tables": [
+    {
+      "name": "users",
+      "description": "Bảng quản lý người dùng (admin/editor)",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "primary_key": true,
+          "not_null": true,
+          "description": "ID người dùng"
+        },
+        {
+          "name": "username",
+          "type": "VARCHAR(100)",
+          "unique": true,
+          "not_null": true,
+          "description": "Tên đăng nhập"
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR(255)",
+          "unique": true,
+          "not_null": true,
+          "description": "Email người dùng"
+        },
+        {
+          "name": "password_hash",
+          "type": "VARCHAR(255)",
+          "not_null": true,
+          "description": "Mật khẩu đã hash"
+        },
+        {
+          "name": "role",
+          "type": "VARCHAR(20)",
+          "not_null": true,
+          "default": "editor",
+          "description": "Vai trò: admin hoặc editor"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "not_null": true,
+          "default": "CURRENT_TIMESTAMP",
+          "description": "Thời gian tạo"
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP",
+          "not_null": true,
+          "default": "CURRENT_TIMESTAMP",
+          "description": "Thời gian cập nhật"
+        }
+      ]
+    },
+    {
+      "name": "categories",
+      "description": "Bảng danh mục sản phẩm",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "primary_key": true,
+          "not_null": true,
+          "description": "ID danh mục"
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(255)",
+          "not_null": true,
+          "description": "Tên danh mục"
+        },
+        {
+          "name": "slug",
+          "type": "VARCHAR(255)",
+          "unique": true,
+          "not_null": true,
+          "description": "URL slug"
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "description": "Mô tả danh mục"
+        },
+        {
+          "name": "parent_id",
+          "type": "INTEGER",
+          "foreign_key": "categories.id",
+          "description": "ID danh mục cha (null nếu là danh mục gốc)"
+        },
+        {
+          "name": "order",
+          "type": "INTEGER",
+          "default": 0,
+          "description": "Thứ tự hiển thị"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "not_null": true,
+          "default": "CURRENT_TIMESTAMP",
+          "description": "Thời gian tạo"
+        }
+      ]
+    },
+    {
+      "name": "products",
+      "description": "Bảng sản phẩm",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "primary_key": true,
+          "not_null": true,
+          "description": "ID sản phẩm"
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(255)",
+          "not_null": true,
+          "description": "Tên sản phẩm"
+        },
+        {
+          "name": "slug",
+          "type": "VARCHAR(255)",
+          "unique": true,
+          "not_null": true,
+          "description": "URL slug"
+        },
+        {
+          "name": "short_description",
+          "type": "TEXT",
+          "description": "Mô tả ngắn"
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "description": "Mô tả chi tiết"
+        },
+        {
+          "name": "category_id",
+          "type": "INTEGER",
+          "foreign_key": "categories.id",
+          "not_null": true,
+          "description": "ID danh mục"
+        },
+        {
+          "name": "image_urls",
+          "type": "JSONB",
+          "description": "Mảng URL hình ảnh sản phẩm"
+        },
+        {
+          "name": "features",
+          "type": "JSONB",
+          "description": "Danh sách tính năng (JSON array)"
+        },
+        {
+          "name": "specifications",
+          "type": "JSONB",
+          "description": "Thông số kỹ thuật (JSON object)"
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(20)",
+          "not_null": true,
+          "default": "draft",
+          "description": "Trạng thái: draft, published, archived"
+        },
+        {
+          "name": "embedding",
+          "type": "vector(1536)",
+          "description": "Vector embedding cho semantic search (pgvector)"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "not_null": true,
+          "default": "CURRENT_TIMESTAMP",
+          "description": "Thời gian tạo"
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP",
+          "not_null": true,
+          "default": "CURRENT_TIMESTAMP",
+          "description": "Thời gian cập nhật"
+        }
+      ]
+    },
+    {
+      "name": "product_images",
+      "description": "Bảng hình ảnh sản phẩm (chi tiết)",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "primary_key": true,
+          "not_null": true,
+          "description": "ID hình ảnh"
+        },
+        {
+          "name": "product_id",
+          "type": "INTEGER",
+          "foreign_key": "products.id",
+          "not_null": true,
+          "on_delete": "CASCADE",
+          "description": "ID sản phẩm"
+        },
+        {
+          "name": "image_url",
+          "type": "VARCHAR(500)",
+          "not_null": true,
+          "description": "URL hình ảnh"
+        },
+        {
+          "name": "order",
+          "type": "INTEGER",
+          "default": 0,
+          "description": "Thứ tự hiển thị"
+        },
+        {
+          "name": "alt_text",
+          "type": "VARCHAR(255)",
+          "description": "Alt text cho hình ảnh"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "not_null": true,
+          "default": "CURRENT_TIMESTAMP",
+          "description": "Thời gian tạo"
+        }
+      ]
+    },
+    {
+      "name": "blog_posts",
+      "description": "Bảng bài viết blog",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "primary_key": true,
+          "not_null": true,
+          "description": "ID bài viết"
+        },
+        {
+          "name": "title",
+          "type": "VARCHAR(255)",
+          "not_null": true,
+          "description": "Tiêu đề bài viết"
+        },
+        {
+          "name": "slug",
+          "type": "VARCHAR(255)",
+          "unique": true,
+          "not_null": true,
+          "description": "URL slug"
+        },
+        {
+          "name": "excerpt",
+          "type": "TEXT",
+          "description": "Tóm tắt bài viết"
+        },
+        {
+          "name": "content",
+          "type": "TEXT",
+          "not_null": true,
+          "description": "Nội dung bài viết"
+        },
+        {
+          "name": "featured_image",
+          "type": "VARCHAR(500)",
+          "description": "URL hình ảnh đại diện"
+        },
+        {
+          "name": "author_id",
+          "type": "INTEGER",
+          "foreign_key": "users.id",
+          "not_null": true,
+          "description": "ID tác giả"
+        },
+        {
+          "name": "category_id",
+          "type": "INTEGER",
+          "foreign_key": "blog_categories.id",
+          "description": "ID danh mục blog"
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(20)",
+          "not_null": true,
+          "default": "draft",
+          "description": "Trạng thái: draft, published, archived"
+        },
+        {
+          "name": "published_at",
+          "type": "TIMESTAMP",
+          "description": "Thời gian xuất bản"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "not_null": true,
+          "default": "CURRENT_TIMESTAMP",
+          "description": "Thời gian tạo"
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP",
+          "not_null": true,
+          "default": "CURRENT_TIMESTAMP",
+          "description": "Thời gian cập nhật"
+        }
+      ]
+    },
+    {
+      "name": "blog_categories",
+      "description": "Bảng danh mục blog",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "primary_key": true,
+          "not_null": true,
+          "description": "ID danh mục"
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(255)",
+          "not_null": true,
+          "description": "Tên danh mục"
+        },
+        {
+          "name": "slug",
+          "type": "VARCHAR(255)",
+          "unique": true,
+          "not_null": true,
+          "description": "URL slug"
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "description": "Mô tả danh mục"
+        },
+        {
+          "name": "order",
+          "type": "INTEGER",
+          "default": 0,
+          "description": "Thứ tự hiển thị"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "not_null": true,
+          "default": "CURRENT_TIMESTAMP",
+          "description": "Thời gian tạo"
+        }
+      ]
+    },
+    {
+      "name": "contacts",
+      "description": "Bảng thông tin liên hệ từ form",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "primary_key": true,
+          "not_null": true,
+          "description": "ID liên hệ"
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(255)",
+          "not_null": true,
+          "description": "Tên người liên hệ"
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR(255)",
+          "not_null": true,
+          "description": "Email"
+        },
+        {
+          "name": "phone",
+          "type": "VARCHAR(50)",
+          "description": "Số điện thoại"
+        },
+        {
+          "name": "company",
+          "type": "VARCHAR(255)",
+          "description": "Tên công ty"
+        },
+        {
+          "name": "message",
+          "type": "TEXT",
+          "not_null": true,
+          "description": "Nội dung tin nhắn"
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(20)",
+          "not_null": true,
+          "default": "new",
+          "description": "Trạng thái: new, read, replied, archived"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "not_null": true,
+          "default": "CURRENT_TIMESTAMP",
+          "description": "Thời gian tạo"
+        }
+      ]
+    },
+    {
+      "name": "social_media_links",
+      "description": "Bảng quản lý liên kết mạng xã hội",
+      "columns": [
+        {
+          "name": "id",
+          "type": "SERIAL",
+          "primary_key": true,
+          "not_null": true,
+          "description": "ID liên kết"
+        },
+        {
+          "name": "platform",
+          "type": "VARCHAR(50)",
+          "not_null": true,
+          "description": "Nền tảng mạng xã hội: facebook, linkedin, twitter, youtube, instagram, tiktok, zalo, other"
+        },
+        {
+          "name": "url",
+          "type": "VARCHAR(500)",
+          "not_null": true,
+          "description": "URL liên kết mạng xã hội"
+        },
+        {
+          "name": "icon_name",
+          "type": "VARCHAR(100)",
+          "description": "Tên icon từ lucide-react (ví dụ: Facebook, Linkedin, Twitter)"
+        },
+        {
+          "name": "order",
+          "type": "INTEGER",
+          "default": 0,
+          "description": "Thứ tự hiển thị"
+        },
+        {
+          "name": "is_active",
+          "type": "BOOLEAN",
+          "not_null": true,
+          "default": true,
+          "description": "Có hiển thị trên website hay không"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "not_null": true,
+          "default": "CURRENT_TIMESTAMP",
+          "description": "Thời gian tạo"
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP",
+          "not_null": true,
+          "default": "CURRENT_TIMESTAMP",
+          "description": "Thời gian cập nhật"
+        }
+      ]
+    }
+  ],
+  "indexes": [
+    {
+      "table": "products",
+      "name": "idx_products_slug",
+      "columns": ["slug"],
+      "type": "UNIQUE"
+    },
+    {
+      "table": "products",
+      "name": "idx_products_category",
+      "columns": ["category_id"]
+    },
+    {
+      "table": "products",
+      "name": "idx_products_status",
+      "columns": ["status"]
+    },
+    {
+      "table": "products",
+      "name": "idx_products_embedding",
+      "columns": ["embedding"],
+      "type": "vector",
+      "method": "ivfflat"
+    },
+    {
+      "table": "categories",
+      "name": "idx_categories_slug",
+      "columns": ["slug"],
+      "type": "UNIQUE"
+    },
+    {
+      "table": "blog_posts",
+      "name": "idx_blog_slug",
+      "columns": ["slug"],
+      "type": "UNIQUE"
+    },
+    {
+      "table": "blog_posts",
+      "name": "idx_blog_status",
+      "columns": ["status"]
+    },
+    {
+      "table": "blog_posts",
+      "name": "idx_blog_posts_category",
+      "columns": ["category_id"]
+    },
+    {
+      "table": "blog_categories",
+      "name": "idx_blog_categories_slug",
+      "columns": ["slug"],
+      "type": "UNIQUE"
+    },
+    {
+      "table": "users",
+      "name": "idx_users_email",
+      "columns": ["email"],
+      "type": "UNIQUE"
+    },
+    {
+      "table": "users",
+      "name": "idx_users_username",
+      "columns": ["username"],
+      "type": "UNIQUE"
+    },
+    {
+      "table": "social_media_links",
+      "name": "idx_social_media_links_platform",
+      "columns": ["platform"]
+    },
+    {
+      "table": "social_media_links",
+      "name": "idx_social_media_links_order",
+      "columns": ["order"]
+    },
+    {
+      "table": "social_media_links",
+      "name": "idx_social_media_links_is_active",
+      "columns": ["is_active"]
+    }
+  ]
+}

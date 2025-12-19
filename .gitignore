@@ -1,0 +1,124 @@
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env*.local
+*.env
+
+# Dependencies
+node_modules/
+.nextjs/node_modules/
+main-api/vendor/
+
+# Build outputs
+.next/
+out/
+dist/
+build/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+main-api/bin/
+main-api/main
+
+# Go specific
+*.test
+*.out
+*.prof
+go.work
+go.work.sum
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Database
+database/mounts/
+*.db
+*.sqlite
+*.sqlite3
+
+# Docker
+.docker/
+docker-compose.override.yml
+*.dockerignore.local
+
+# IDE and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.cache
+.cache/
+
+# Coverage and testing
+coverage/
+.nyc_output/
+*.lcov
+.coverage/
+htmlcov/
+.pytest_cache/
+__pycache__/
+
+# Vercel
+.vercel
+
+# Cloudflare
+.cloudflared/
+
+# Assets (nếu cần ignore một số file tạm)
+assets/temp/
+assets/uploads/temp/
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+*.cert
+
+# Package manager locks (giữ lại package-lock.json nhưng có thể ignore yarn.lock nếu dùng npm)
+# yarn.lock
+# pnpm-lock.yaml
+
+# Misc
+*.pid
+*.seed
+*.pid.lock
+.npm
+.eslintcache
+.stylelintcache
